@@ -62,7 +62,7 @@ func (idx Index) Add(s string) {
 	}
 }
 
-// Query returns a list of document IDs that match the query s
+// Query returns a list of document IDs that match the trigrams in the query s
 func (idx Index) Query(s string) []int {
 	ts := Extract(s, nil)
 	return idx.QueryTrigrams(ts)
