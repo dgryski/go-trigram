@@ -52,12 +52,25 @@ func (idx Index) Add(s string) {
 }
 
 func (idx Index) Query(s string) []int {
-
 	ts := MakeTrigrams(s)
+	return idx.QueryTrigrams(ts)
+}
 
-	// TODO(dgryski): start with the rarest trigram
+func (idx Index) QueryTrigrams(ts []tri) []int {
 
-	return idx.Filter(idx[ts[0]], ts[1:]...)
+	midx := 0
+	mtri := ts[midx]
+
+	for i, t := range ts {
+		if len(idx[t]) < len(idx[mtri]) {
+			midx = i
+			mtri = t
+		}
+	}
+
+	ts[0], ts[midx] = ts[midx], ts[0]
+
+	return idx.Filter(idx[mtri], ts[1:]...)
 }
 
 func (idx Index) Filter(docs []int, ts ...tri) []int {
