@@ -3,6 +3,11 @@ package trigram
 
 type T uint32
 
+func (t T) String() string {
+	b := [3]byte{byte(t >> 16), byte(t >> 8), byte(t)}
+	return string(b[:])
+}
+
 type Index map[T][]int
 
 func Extract(s string, trigrams []T) []T {
