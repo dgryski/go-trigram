@@ -1,21 +1,21 @@
 /* Package trigram is a dumb trigram index */
 package trigram
 
-type tri uint32
+type T uint32
 
-type Index map[tri][]int
+type Index map[T][]int
 
-func Extract(s string, trigrams []tri) []tri {
+func Extract(s string, trigrams []T) []T {
 
 	for i := 0; i <= len(s)-3; i++ {
-		t := tri(uint32(s[i])<<16 | uint32(s[i+1])<<8 | uint32(s[i+2]))
+		t := T(uint32(s[i])<<16 | uint32(s[i+1])<<8 | uint32(s[i+2]))
 		trigrams = appendIfUnique(trigrams, t)
 	}
 
 	return trigrams
 }
 
-func appendIfUnique(t []tri, n tri) []tri {
+func appendIfUnique(t []T, n T) []T {
 	for _, v := range t {
 		if v == n {
 			return t
@@ -29,7 +29,7 @@ func NewIndex(docs []string) Index {
 
 	idx := make(Index)
 
-	var trigrams []tri
+	var trigrams []T
 
 	for id, d := range docs {
 		ts := Extract(d, trigrams)
@@ -57,7 +57,7 @@ func (idx Index) Query(s string) []int {
 	return idx.QueryTrigrams(ts)
 }
 
-func (idx Index) QueryTrigrams(ts []tri) []int {
+func (idx Index) QueryTrigrams(ts []T) []int {
 
 	midx := 0
 	mtri := ts[midx]
@@ -74,7 +74,7 @@ func (idx Index) QueryTrigrams(ts []tri) []int {
 	return idx.Filter(idx[mtri], ts[1:]...)
 }
 
-func (idx Index) Filter(docs []int, ts ...tri) []int {
+func (idx Index) Filter(docs []int, ts ...T) []int {
 	for _, t := range ts {
 		docs = intersect(docs, idx[t])
 	}
