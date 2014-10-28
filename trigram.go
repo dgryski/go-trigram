@@ -5,7 +5,7 @@ type tri uint32
 
 type Index map[tri][]int
 
-func MakeTrigrams(s string) []tri {
+func Extract(s string) []tri {
 
 	var trigrams []tri
 
@@ -32,7 +32,7 @@ func NewIndex(docs []string) Index {
 	idx := make(Index)
 
 	for id, d := range docs {
-		ts := MakeTrigrams(d)
+		ts := Extract(d)
 		for _, t := range ts {
 			idx[t] = append(idx[t], id)
 		}
@@ -45,14 +45,14 @@ func (idx Index) Add(s string) {
 
 	id := len(idx)
 
-	ts := MakeTrigrams(s)
+	ts := Extract(s)
 	for _, t := range ts {
 		idx[t] = append(idx[t], id)
 	}
 }
 
 func (idx Index) Query(s string) []int {
-	ts := MakeTrigrams(s)
+	ts := Extract(s)
 	return idx.QueryTrigrams(ts)
 }
 
