@@ -1,6 +1,7 @@
-/* Package trigram is a dumb trigram index */
+// Package trigram is a dumb trigram index
 package trigram
 
+// T is a trigram
 type T uint32
 
 func (t T) String() string {
@@ -8,8 +9,10 @@ func (t T) String() string {
 	return string(b[:])
 }
 
+// Index is a trigram index
 type Index map[T][]int
 
+// Extract returns a list of trigrams in s
 func Extract(s string, trigrams []T) []T {
 
 	for i := 0; i <= len(s)-3; i++ {
@@ -30,6 +33,7 @@ func appendIfUnique(t []T, n T) []T {
 	return append(t, n)
 }
 
+// NewIndex returns an index for the strings in docs
 func NewIndex(docs []string) Index {
 
 	idx := make(Index)
@@ -47,6 +51,7 @@ func NewIndex(docs []string) Index {
 	return idx
 }
 
+// Add adds a new string to the search index
 func (idx Index) Add(s string) {
 
 	id := len(idx)
@@ -57,11 +62,13 @@ func (idx Index) Add(s string) {
 	}
 }
 
+// Query returns a list of document IDs that match the query s
 func (idx Index) Query(s string) []int {
 	ts := Extract(s, nil)
 	return idx.QueryTrigrams(ts)
 }
 
+// QueryTrigrams returns a list of document IDs that match the trigram set ts
 func (idx Index) QueryTrigrams(ts []T) []int {
 
 	midx := 0
@@ -79,6 +86,7 @@ func (idx Index) QueryTrigrams(ts []T) []int {
 	return idx.Filter(idx[mtri], ts[1:]...)
 }
 
+// Filter removes documents that don't contain the specified trigrams
 func (idx Index) Filter(docs []int, ts ...T) []int {
 	for _, t := range ts {
 		docs = intersect(docs, idx[t])
