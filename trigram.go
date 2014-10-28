@@ -95,16 +95,29 @@ func intersect(a, b []int) []int {
 
 	var result []int
 
+scan:
 	for aidx < len(a) && bidx < len(b) {
-		switch {
-		case a[aidx] == b[bidx]:
+		if a[aidx] == b[bidx] {
 			result = append(result, a[aidx])
 			aidx++
 			bidx++
-		case a[aidx] < b[bidx]:
+			if aidx >= len(a) || bidx >= len(b) {
+				break scan
+			}
+		}
+
+		for a[aidx] < b[bidx] {
 			aidx++
-		case a[aidx] > b[bidx]:
+			if aidx >= len(a) {
+				break scan
+			}
+		}
+
+		for bidx < len(b) && a[aidx] > b[bidx] {
 			bidx++
+			if bidx >= len(b) {
+				break scan
+			}
 		}
 	}
 
