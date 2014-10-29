@@ -10,7 +10,7 @@ func (t T) String() string {
 }
 
 // DocID is a document ID
-type DocID int
+type DocID uint32
 
 // Index is a trigram index
 type Index map[T][]DocID
