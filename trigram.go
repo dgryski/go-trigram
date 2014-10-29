@@ -66,7 +66,7 @@ func NewIndex(docs []string) Index {
 // Add adds a new string to the search index
 func (idx Index) Add(s string) {
 
-	id := DocID(len(idx))
+	id := DocID(len(idx[tAllDocIDs]))
 
 	ts := Extract(s, nil)
 	for _, t := range ts {
