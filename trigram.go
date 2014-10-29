@@ -64,7 +64,7 @@ func NewIndex(docs []string) Index {
 }
 
 // Add adds a new string to the search index
-func (idx Index) Add(s string) {
+func (idx Index) Add(s string) DocID {
 
 	id := DocID(len(idx[tAllDocIDs]))
 
@@ -74,6 +74,8 @@ func (idx Index) Add(s string) {
 	}
 
 	idx[tAllDocIDs] = append(idx[tAllDocIDs], id)
+
+	return id
 }
 
 // Query returns a list of document IDs that match the trigrams in the query s
