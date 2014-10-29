@@ -103,11 +103,11 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 
 	ts[0], ts[midx] = ts[midx], ts[0]
 
-	return idx.Filter(idx[mtri], ts[1:]...)
+	return idx.Filter(idx[mtri], ts[1:])
 }
 
 // Filter removes documents that don't contain the specified trigrams
-func (idx Index) Filter(docs []DocID, ts ...T) []DocID {
+func (idx Index) Filter(docs []DocID, ts []T) []DocID {
 	for _, t := range ts {
 		docs = intersect(docs, idx[t])
 	}
