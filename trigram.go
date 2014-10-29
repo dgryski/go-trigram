@@ -15,6 +15,9 @@ type DocID uint32
 // Index is a trigram index
 type Index map[T][]DocID
 
+// a special (and invalid) trigram that holds all the document IDs
+const tAllDocIDs T = 0xFFFFFFFF
+
 // Extract returns a list of trigrams in s
 func Extract(s string, trigrams []T) []T {
 
@@ -41,16 +44,21 @@ func NewIndex(docs []string) Index {
 
 	idx := make(Index)
 
+	var allDocIDs []DocID
+
 	var trigrams []T
 
 	for id, d := range docs {
 		ts := Extract(d, trigrams)
 		docid := DocID(id)
+		allDocIDs = append(allDocIDs, docid)
 		for _, t := range ts {
 			idx[t] = append(idx[t], docid)
 		}
 		trigrams = trigrams[:0]
 	}
+
+	idx[tAllDocIDs] = allDocIDs
 
 	return idx
 }
@@ -64,6 +72,8 @@ func (idx Index) Add(s string) {
 	for _, t := range ts {
 		idx[t] = append(idx[t], id)
 	}
+
+	idx[tAllDocIDs] = append(idx[tAllDocIDs], id)
 }
 
 // Query returns a list of document IDs that match the trigrams in the query s
@@ -74,6 +84,10 @@ func (idx Index) Query(s string) []DocID {
 
 // QueryTrigrams returns a list of document IDs that match the trigram set ts
 func (idx Index) QueryTrigrams(ts []T) []DocID {
+
+	if len(ts) == 0 {
+		return idx[tAllDocIDs]
+	}
 
 	midx := 0
 	mtri := ts[midx]
