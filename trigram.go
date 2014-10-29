@@ -9,8 +9,11 @@ func (t T) String() string {
 	return string(b[:])
 }
 
+// DocID is a document ID
+type DocID int
+
 // Index is a trigram index
-type Index map[T][]int
+type Index map[T][]DocID
 
 // Extract returns a list of trigrams in s
 func Extract(s string, trigrams []T) []T {
@@ -42,8 +45,9 @@ func NewIndex(docs []string) Index {
 
 	for id, d := range docs {
 		ts := Extract(d, trigrams)
+		docid := DocID(id)
 		for _, t := range ts {
-			idx[t] = append(idx[t], id)
+			idx[t] = append(idx[t], docid)
 		}
 		trigrams = trigrams[:0]
 	}
@@ -54,7 +58,7 @@ func NewIndex(docs []string) Index {
 // Add adds a new string to the search index
 func (idx Index) Add(s string) {
 
-	id := len(idx)
+	id := DocID(len(idx))
 
 	ts := Extract(s, nil)
 	for _, t := range ts {
@@ -63,13 +67,13 @@ func (idx Index) Add(s string) {
 }
 
 // Query returns a list of document IDs that match the trigrams in the query s
-func (idx Index) Query(s string) []int {
+func (idx Index) Query(s string) []DocID {
 	ts := Extract(s, nil)
 	return idx.QueryTrigrams(ts)
 }
 
 // QueryTrigrams returns a list of document IDs that match the trigram set ts
-func (idx Index) QueryTrigrams(ts []T) []int {
+func (idx Index) QueryTrigrams(ts []T) []DocID {
 
 	midx := 0
 	mtri := ts[midx]
@@ -87,7 +91,7 @@ func (idx Index) QueryTrigrams(ts []T) []int {
 }
 
 // Filter removes documents that don't contain the specified trigrams
-func (idx Index) Filter(docs []int, ts ...T) []int {
+func (idx Index) Filter(docs []DocID, ts ...T) []DocID {
 	for _, t := range ts {
 		docs = intersect(docs, idx[t])
 	}
@@ -95,13 +99,13 @@ func (idx Index) Filter(docs []int, ts ...T) []int {
 	return docs
 }
 
-func intersect(a, b []int) []int {
+func intersect(a, b []DocID) []DocID {
 
 	// TODO(dgryski): reduce allocations by reusing A
 
 	var aidx, bidx int
 
-	var result []int
+	var result []DocID
 
 scan:
 	for aidx < len(a) && bidx < len(b) {
