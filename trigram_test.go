@@ -41,9 +41,9 @@ func TestQuery(t *testing.T) {
 	s := []string{
 		"foo",
 		"foobar",
-		"foob",
+		"foobfoo",
 		"quxzoot",
-		"zot",
+		"zotzot",
 		"azotfoba",
 	}
 
