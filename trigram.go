@@ -22,12 +22,23 @@ type Index map[T][]DocID
 // a special (and invalid) trigram that holds all the document IDs
 const tAllDocIDs T = 0xFFFFFFFF
 
-// Extract returns a list of trigrams in s
+// Extract returns a list of all the unique trigrams in s
 func Extract(s string, trigrams []T) []T {
 
 	for i := 0; i <= len(s)-3; i++ {
 		t := T(uint32(s[i])<<16 | uint32(s[i+1])<<8 | uint32(s[i+2]))
 		trigrams = appendIfUnique(trigrams, t)
+	}
+
+	return trigrams
+}
+
+// ExtractAll returns a list of all the trigrams in s
+func ExtractAll(s string, trigrams []T) []T {
+
+	for i := 0; i <= len(s)-3; i++ {
+		t := T(uint32(s[i])<<16 | uint32(s[i+1])<<8 | uint32(s[i+2]))
+		trigrams = append(trigrams, t)
 	}
 
 	return trigrams
@@ -53,11 +64,15 @@ func NewIndex(docs []string) Index {
 	var trigrams []T
 
 	for id, d := range docs {
-		ts := Extract(d, trigrams)
+		ts := ExtractAll(d, trigrams)
 		docid := DocID(id)
 		allDocIDs = append(allDocIDs, docid)
 		for _, t := range ts {
-			idx[t] = append(idx[t], docid)
+			idxt := idx[t]
+			l := len(idxt)
+			if l == 0 || idxt[l-1] != docid {
+				idx[t] = append(idxt, docid)
+			}
 		}
 		trigrams = trigrams[:0]
 	}
@@ -69,12 +84,15 @@ func NewIndex(docs []string) Index {
 
 // Add adds a new string to the search index
 func (idx Index) Add(s string) DocID {
-
 	id := DocID(len(idx[tAllDocIDs]))
 
-	ts := Extract(s, nil)
+	ts := ExtractAll(s, nil)
 	for _, t := range ts {
-		idx[t] = append(idx[t], id)
+		idxt := idx[t]
+		l := len(idxt)
+		if l == 0 || idxt[l-1] != id {
+			idx[t] = append(idxt, id)
+		}
 	}
 
 	idx[tAllDocIDs] = append(idx[tAllDocIDs], id)
