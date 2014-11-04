@@ -1,6 +1,10 @@
 // Package trigram is a dumb trigram index
 package trigram
 
+import (
+	"sort"
+)
+
 // T is a trigram
 type T uint32
 
@@ -78,11 +82,40 @@ func (idx Index) Add(s string) DocID {
 	return id
 }
 
+// for sorting
+type docList []DocID
+
+func (d docList) Len() int           { return len(d) }
+func (d docList) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
+func (d docList) Less(i, j int) bool { return d[i] < d[j] }
+
+// Sort ensures all the document IDs are in order.
+func (idx Index) Sort() {
+	for _, v := range idx {
+		dl := docList(v)
+		if !sort.IsSorted(dl) {
+			sort.Sort(dl)
+		}
+	}
+}
+
 // Query returns a list of document IDs that match the trigrams in the query s
 func (idx Index) Query(s string) []DocID {
 	ts := Extract(s, nil)
 	return idx.QueryTrigrams(ts)
 }
+
+type tfList struct {
+	tri  []T
+	freq []int
+}
+
+func (tf tfList) Len() int { return len(tf.tri) }
+func (tf tfList) Swap(i, j int) {
+	tf.tri[i], tf.tri[j] = tf.tri[j], tf.tri[i]
+	tf.freq[i], tf.freq[j] = tf.freq[j], tf.freq[i]
+}
+func (tf tfList) Less(i, j int) bool { return tf.freq[i] < tf.freq[j] }
 
 // QueryTrigrams returns a list of document IDs that match the trigram set ts
 func (idx Index) QueryTrigrams(ts []T) []DocID {
@@ -91,19 +124,21 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 		return idx[tAllDocIDs]
 	}
 
-	midx := 0
-	mtri := ts[midx]
+	var freq []int
 
-	for i, t := range ts {
-		if len(idx[t]) < len(idx[mtri]) {
-			midx = i
-			mtri = t
+	for _, t := range ts {
+		ln := len(idx[t])
+		if ln == 0 {
+			return nil
 		}
+		freq = append(freq, ln)
 	}
 
-	ts[0], ts[midx] = ts[midx], ts[0]
+	sort.Sort(tfList{ts, freq})
 
-	return idx.Filter(idx[mtri], ts[1:])
+	ids := idx.Filter(idx[ts[0]], ts[1:])
+
+	return ids
 }
 
 // Filter removes documents that don't contain the specified trigrams
