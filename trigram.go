@@ -1,4 +1,4 @@
-// Package trigram is a dumb trigram index
+// Package trigram is a simple trigram index
 package trigram
 
 import (
