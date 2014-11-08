@@ -117,6 +117,23 @@ func (idx Index) Sort() {
 	}
 }
 
+// Prune removes all trigrams that are present in more than the specified percentage of the documents.
+func (idx Index) Prune(pct float64) int {
+
+	maxDocs := int(pct * float64(len(idx[tAllDocIDs])))
+
+	var pruned int
+
+	for k, v := range idx {
+		if k != tAllDocIDs && len(v) > maxDocs {
+			pruned++
+			idx[k] = nil
+		}
+	}
+
+	return pruned
+}
+
 // Query returns a list of document IDs that match the trigrams in the query s
 func (idx Index) Query(s string) []DocID {
 	ts := Extract(s, nil)
@@ -145,16 +162,21 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 	var freq []int
 
 	for _, t := range ts {
-		ln := len(idx[t])
-		if ln == 0 {
+		d, ok := idx[t]
+		if !ok {
 			return nil
 		}
-		freq = append(freq, ln)
+		freq = append(freq, len(d))
 	}
 
 	sort.Sort(tfList{ts, freq})
 
-	ids := idx.Filter(idx[ts[0]], ts[1:])
+	var nonzero int
+	for freq[nonzero] == 0 {
+		nonzero++
+	}
+
+	ids := idx.Filter(idx[ts[nonzero]], ts[nonzero+1:])
 
 	return ids
 }
@@ -162,7 +184,18 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 // Filter removes documents that don't contain the specified trigrams
 func (idx Index) Filter(docs []DocID, ts []T) []DocID {
 	for _, t := range ts {
-		docs = intersect(docs, idx[t])
+		d, ok := idx[t]
+		// unknown trigram
+		if !ok {
+			return nil
+		}
+
+		if d == nil {
+			// the trigram was removed via Prune()
+			continue
+		}
+
+		docs = intersect(docs, d)
 	}
 
 	return docs
