@@ -85,8 +85,25 @@ func NewIndex(docs []string) Index {
 // Add adds a new string to the search index
 func (idx Index) Add(s string) DocID {
 	id := DocID(len(idx[tAllDocIDs]))
+	idx.Insert(s, id)
+	return id
+}
 
+// AddTrigrams adds a set of trigrams to the search index
+func (idx Index) AddTrigrams(ts []T) DocID {
+	id := DocID(len(idx[tAllDocIDs]))
+	idx.InsertTrigrams(ts, id)
+	return id
+}
+
+// Insert adds a string with a given document ID
+func (idx Index) Insert(s string, id DocID) {
 	ts := ExtractAll(s, nil)
+	idx.InsertTrigrams(ts, id)
+}
+
+// InsertTrigrams adds a set of trigrams with a given document ID
+func (idx Index) InsertTrigrams(ts []T, id DocID) {
 	for _, t := range ts {
 		idxt := idx[t]
 		l := len(idxt)
@@ -96,8 +113,6 @@ func (idx Index) Add(s string) DocID {
 	}
 
 	idx[tAllDocIDs] = append(idx[tAllDocIDs], id)
-
-	return id
 }
 
 // for sorting
