@@ -72,4 +72,9 @@ func TestQuery(t *testing.T) {
 		t.Errorf("Query(`lot`)=%+v, want []DocID{6}", docs)
 	}
 
+	idx.Delete("foobar", 1)
+	docs = idx.Query("fooba")
+	if len(docs) != 0 {
+		t.Errorf("Query(`fooba`)=%+v, want []DocID{}", docs)
+	}
 }

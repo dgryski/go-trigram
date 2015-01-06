@@ -115,6 +115,29 @@ func (idx Index) InsertTrigrams(ts []T, id DocID) {
 	idx[tAllDocIDs] = append(idx[tAllDocIDs], id)
 }
 
+// Delete removes a document from the index
+func (idx Index) Delete(s string, id DocID) {
+	ts := ExtractAll(s, nil)
+	for _, t := range ts {
+		ids := idx[t]
+		if ids == nil {
+			continue
+		}
+
+		if len(ids) == 1 && ids[0] == id {
+			delete(idx, t)
+			continue
+		}
+
+		i := sort.Search(len(ids), func(i int) bool { return ids[i] >= id })
+
+		if i != -1 && i < len(ids) && ids[i] == id {
+			copy(ids[i:], ids[i+1:])
+			idx[t] = ids[:len(ids)-1]
+		}
+	}
+}
+
 // for sorting
 type docList []DocID
 
