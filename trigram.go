@@ -221,6 +221,9 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 
 // Filter removes documents that don't contain the specified trigrams
 func (idx Index) Filter(docs []DocID, ts []T) []DocID {
+
+	result := make([]DocID, len(docs))
+
 	for _, t := range ts {
 		d, ok := idx[t]
 		// unknown trigram
@@ -233,19 +236,16 @@ func (idx Index) Filter(docs []DocID, ts []T) []DocID {
 			continue
 		}
 
-		docs = intersect(docs, d)
+		result = intersect(result[:0], docs, d)
+		docs = result
 	}
 
 	return docs
 }
 
-func intersect(a, b []DocID) []DocID {
-
-	// TODO(dgryski): reduce allocations by reusing A
+func intersect(result, a, b []DocID) []DocID {
 
 	var aidx, bidx int
-
-	var result []DocID
 
 scan:
 	for aidx < len(a) && bidx < len(b) {
