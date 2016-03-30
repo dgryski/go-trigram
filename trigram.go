@@ -210,8 +210,13 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 	sort.Sort(tfList{ts, freq})
 
 	var nonzero int
-	for freq[nonzero] == 0 {
+	for nonzero < len(freq) && freq[nonzero] == 0 {
 		nonzero++
+	}
+
+	// query consists only of pruned trigrams -- return all documents
+	if nonzero == len(freq) {
+		return idx[tAllDocIDs]
 	}
 
 	ids := idx.Filter(idx[ts[nonzero]], ts[nonzero+1:])
@@ -221,6 +226,11 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 
 // Filter removes documents that don't contain the specified trigrams
 func (idx Index) Filter(docs []DocID, ts []T) []DocID {
+
+	// no provided filter trigrams
+	if len(ts) == 0 {
+		return docs
+	}
 
 	result := make([]DocID, len(docs))
 
