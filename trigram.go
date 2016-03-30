@@ -275,7 +275,7 @@ scan:
 			}
 		}
 
-		for bidx < len(b) && a[aidx] > b[bidx] {
+		for a[aidx] > b[bidx] {
 			bidx++
 			if bidx >= len(b) {
 				break scan
