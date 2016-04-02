@@ -263,21 +263,21 @@ scan:
 			result = append(result, a[aidx])
 			aidx++
 			bidx++
-			if aidx >= len(a) || bidx >= len(b) {
+			if aidx == len(a) || bidx == len(b) {
 				break scan
 			}
 		}
 
 		for a[aidx] < b[bidx] {
 			aidx++
-			if aidx >= len(a) {
+			if aidx == len(a) {
 				break scan
 			}
 		}
 
 		for a[aidx] > b[bidx] {
 			bidx++
-			if bidx >= len(b) {
+			if bidx == len(b) {
 				break scan
 			}
 		}
