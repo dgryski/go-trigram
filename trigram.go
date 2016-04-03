@@ -105,7 +105,11 @@ func (idx Index) Insert(s string, id DocID) {
 // InsertTrigrams adds a set of trigrams with a given document ID
 func (idx Index) InsertTrigrams(ts []T, id DocID) {
 	for _, t := range ts {
-		idxt := idx[t]
+		idxt, ok := idx[t]
+		// this trigram post list has been pruned. we must keep it empty
+		if ok && idxt == nil {
+			continue
+		}
 		l := len(idxt)
 		if l == 0 || idxt[l-1] != id {
 			idx[t] = append(idxt, id)

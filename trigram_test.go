@@ -78,3 +78,53 @@ func TestQuery(t *testing.T) {
 		t.Errorf("Query(`fooba`)=%+v, want []DocID{}", docs)
 	}
 }
+
+func TestFullPrune(t *testing.T) {
+
+	s := []string{
+		"foo",
+		"foobar",
+		"foobfoo",
+		"quxzoot",
+		"zotzot",
+		"azotfoba",
+	}
+
+	idx := NewIndex(s)
+	idx.Prune(0)
+
+	tests := []struct {
+		q   string
+		ids []DocID
+	}{
+		{"", []DocID{0, 1, 2, 3, 4, 5}},
+		{"foo", []DocID{0, 1, 2, 3, 4, 5}},
+		{"foob", []DocID{0, 1, 2, 3, 4, 5}},
+		{"zot", []DocID{0, 1, 2, 3, 4, 5}},
+		{"oba", []DocID{0, 1, 2, 3, 4, 5}},
+	}
+
+	for _, tt := range tests {
+		if got := idx.Query(tt.q); !reflect.DeepEqual(got, tt.ids) {
+			t.Errorf("Query(%q)=%+v, want %+v", tt.q, got, tt.ids)
+		}
+	}
+
+	idx.Add("ahafoo")
+	tests = []struct {
+		q   string
+		ids []DocID
+	}{
+		{"", []DocID{0, 1, 2, 3, 4, 5, 6}},
+		{"foo", []DocID{0, 1, 2, 3, 4, 5, 6}},
+		{"foob", []DocID{0, 1, 2, 3, 4, 5, 6}},
+		{"zot", []DocID{0, 1, 2, 3, 4, 5, 6}},
+		{"oba", []DocID{0, 1, 2, 3, 4, 5, 6}},
+	}
+
+	for _, tt := range tests {
+		if got := idx.Query(tt.q); !reflect.DeepEqual(got, tt.ids) {
+			t.Errorf("Query(%q)=%+v, want %+v", tt.q, got, tt.ids)
+		}
+	}
+}
