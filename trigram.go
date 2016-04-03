@@ -238,14 +238,15 @@ func (idx Index) FilterOr(docs []DocID, tss [][]T) []DocID {
 	}
 	maxDocs := len(docs)
 
-	docs = idx.Filter(docs, tss[0])
+	filtered := idx.Filter(docs, tss[0])
 
 	for i := 1; i < len(tss); i++ {
 		// docs can be a live postings list so we can't repurpose that array
 		result := make([]DocID, 0, maxDocs)
-		docs = union(result, docs, idx.Filter(docs, tss[i]))
+		out := idx.Filter(docs, tss[i])
+		filtered = union(result, filtered, out)
 	}
-	return docs
+	return filtered
 }
 
 // Filter removes documents that don't contain the specified trigrams
