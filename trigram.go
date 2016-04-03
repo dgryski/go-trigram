@@ -236,6 +236,12 @@ func (idx Index) Filter(docs []DocID, ts []T) []DocID {
 		return docs
 	}
 
+	// interesting implementation detail:
+	// we don't want to repurpose/alter docs since it's typically
+	// a live postings list, hence allocating a result slice
+	// however, upon subsequent loop runs we do repurpose the input
+	// as the output, because at that point its safe for reuse
+
 	result := make([]DocID, len(docs))
 
 	for _, t := range ts {
@@ -257,6 +263,10 @@ func (idx Index) Filter(docs []DocID, ts []T) []DocID {
 	return docs
 }
 
+// intersect intersects the input slices and puts the output in result slice
+// note that result may be backed by the same array as a or b, since
+// we only add docs that also exist in both inputs, it's guaranteed that we
+// never overwrite/clobber the input, as long as result's start and len are proper
 func intersect(result, a, b []DocID) []DocID {
 
 	var aidx, bidx int
