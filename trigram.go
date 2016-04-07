@@ -20,7 +20,7 @@ type DocID uint32
 type Index map[T][]DocID
 
 // a special (and invalid) trigram that holds all the document IDs
-const tAllDocIDs T = 0xFFFFFFFF
+const TAllDocIDs T = 0xFFFFFFFF
 
 // Extract returns a list of all the unique trigrams in s
 func Extract(s string, trigrams []T) []T {
@@ -77,21 +77,21 @@ func NewIndex(docs []string) Index {
 		trigrams = trigrams[:0]
 	}
 
-	idx[tAllDocIDs] = allDocIDs
+	idx[TAllDocIDs] = allDocIDs
 
 	return idx
 }
 
 // Add adds a new string to the search index
 func (idx Index) Add(s string) DocID {
-	id := DocID(len(idx[tAllDocIDs]))
+	id := DocID(len(idx[TAllDocIDs]))
 	idx.Insert(s, id)
 	return id
 }
 
 // AddTrigrams adds a set of trigrams to the search index
 func (idx Index) AddTrigrams(ts []T) DocID {
-	id := DocID(len(idx[tAllDocIDs]))
+	id := DocID(len(idx[TAllDocIDs]))
 	idx.InsertTrigrams(ts, id)
 	return id
 }
@@ -116,7 +116,7 @@ func (idx Index) InsertTrigrams(ts []T, id DocID) {
 		}
 	}
 
-	idx[tAllDocIDs] = append(idx[tAllDocIDs], id)
+	idx[TAllDocIDs] = append(idx[TAllDocIDs], id)
 }
 
 // Delete removes a document from the index
@@ -162,12 +162,12 @@ func (idx Index) Sort() {
 // Prune removes all trigrams that are present in more than the specified percentage of the documents.
 func (idx Index) Prune(pct float64) int {
 
-	maxDocs := int(pct * float64(len(idx[tAllDocIDs])))
+	maxDocs := int(pct * float64(len(idx[TAllDocIDs])))
 
 	var pruned int
 
 	for k, v := range idx {
-		if k != tAllDocIDs && len(v) > maxDocs {
+		if k != TAllDocIDs && len(v) > maxDocs {
 			pruned++
 			idx[k] = nil
 		}
@@ -198,7 +198,7 @@ func (tf tfList) Less(i, j int) bool { return tf.freq[i] < tf.freq[j] }
 func (idx Index) QueryTrigrams(ts []T) []DocID {
 
 	if len(ts) == 0 {
-		return idx[tAllDocIDs]
+		return idx[TAllDocIDs]
 	}
 
 	var freq []int
@@ -220,7 +220,7 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 
 	// query consists only of pruned trigrams -- return all documents
 	if nonzero == len(freq) {
-		return idx[tAllDocIDs]
+		return idx[TAllDocIDs]
 	}
 
 	ids := idx.Filter(idx[ts[nonzero]], ts[nonzero+1:])
