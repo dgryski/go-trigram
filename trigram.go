@@ -228,6 +228,27 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 	return ids
 }
 
+// FilterOr removes documents that don't contain any of the list of specified trigrams
+// in other words, it's the union of the results of invidial filters
+func (idx Index) FilterOr(docs []DocID, tss [][]T) []DocID {
+
+	// no provided filter trigrams
+	if len(tss) == 0 {
+		return docs
+	}
+	maxDocs := len(docs)
+
+	filtered := idx.Filter(docs, tss[0])
+
+	for i := 1; i < len(tss); i++ {
+		// docs can be a live postings list so we can't repurpose that array
+		result := make([]DocID, 0, maxDocs)
+		out := idx.Filter(docs, tss[i])
+		filtered = union(result, filtered, out)
+	}
+	return filtered
+}
+
 // Filter removes documents that don't contain the specified trigrams
 func (idx Index) Filter(docs []DocID, ts []T) []DocID {
 
@@ -295,6 +316,57 @@ scan:
 				break scan
 			}
 		}
+	}
+
+	return result
+}
+
+// union takes the union of the input slices
+// result slice will be used for output
+// specifying a result slice backed by the same array as a or b
+// is almost always a bad idea and will clobber your input,
+// unless you know what you're doing.
+func union(result, a, b []DocID) []DocID {
+
+	var aidx, bidx int
+
+scan:
+	for aidx < len(a) && bidx < len(b) {
+		if a[aidx] == b[bidx] {
+			result = append(result, a[aidx])
+			aidx++
+			bidx++
+			if aidx == len(a) || bidx == len(b) {
+				break scan
+			}
+		}
+
+		for a[aidx] < b[bidx] {
+			result = append(result, a[aidx])
+			aidx++
+			if aidx == len(a) {
+				break scan
+			}
+		}
+
+		for a[aidx] > b[bidx] {
+			result = append(result, b[bidx])
+			bidx++
+			if bidx == len(b) {
+				break scan
+			}
+		}
+	}
+	// we may have broken out because we either finished b, or a, or both
+	// processes any remainders
+	for aidx < len(a) {
+		result = append(result, a[aidx])
+		aidx++
+	}
+
+	for bidx < len(b) {
+		result = append(result, b[bidx])
+		bidx++
 	}
 
 	return result
