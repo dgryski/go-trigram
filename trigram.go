@@ -201,7 +201,7 @@ func (idx Index) QueryTrigrams(ts []T) []DocID {
 		return idx[TAllDocIDs]
 	}
 
-	var freq []int
+	freq := make([]int, 0, len(ts))
 
 	for _, t := range ts {
 		d, ok := idx[t]
