@@ -1,6 +1,8 @@
 package trigram
 
 import (
+	"fmt"
+	"math/rand"
 	"reflect"
 	"testing"
 )
@@ -127,4 +129,165 @@ func TestFullPrune(t *testing.T) {
 			t.Errorf("Query(%q)=%+v, want %+v", tt.q, got, tt.ids)
 		}
 	}
+}
+
+var result int
+var podNames = getPodNames()
+var f1 = getFileNames(100, 5000)
+var f2 = getFileNames(100, 100000)
+
+var idx1 = NewIndex(f1)
+var idx2 = NewIndex(f2)
+
+
+func BenchmarkQuery1_1(b *testing.B) {
+	var r []DocID
+	format := "general.tuning.%s.metric-*"
+	q := fmt.Sprintf(format, podNames[rand.Intn(100)])
+
+	for n := 0; n < b.N; n++ {
+		ts := extractTrigrams(q)
+		r = idx1.QueryTrigrams(ts)
+	}
+	// always store the result to a package level variable
+	// so the compiler cannot eliminate the Benchmark itself.
+	result = len(r)
+}
+
+func BenchmarkQuery1_2(b *testing.B) {
+	var r []DocID
+	format := "general.tuning.%s.metric-1"
+	q := fmt.Sprintf(format, "*")
+
+	for n := 0; n < b.N; n++ {
+		ts := extractTrigrams(q)
+		r = idx1.QueryTrigrams(ts)
+	}
+	// always store the result to a package level variable
+	// so the compiler cannot eliminate the Benchmark itself.
+	result = len(r)
+}
+
+func BenchmarkQuery1_3(b *testing.B) {
+	var r []DocID
+	format := "general.tuning.%s.metric-1*"
+	q := fmt.Sprintf(format, "*")
+
+	for n := 0; n < b.N; n++ {
+		ts := extractTrigrams(q)
+		r = idx1.QueryTrigrams(ts)
+	}
+	// always store the result to a package level variable
+	// so the compiler cannot eliminate the Benchmark itself.
+	result = len(r)
+}
+
+func BenchmarkQuery2_1(b *testing.B) {
+	var r []DocID
+	format := "general.tuning.%s.metric-*"
+	q := fmt.Sprintf(format, podNames[rand.Intn(100)])
+
+	for n := 0; n < b.N; n++ {
+		ts := extractTrigrams(q)
+		r = idx2.QueryTrigrams(ts)
+	}
+	// always store the result to a package level variable
+	// so the compiler cannot eliminate the Benchmark itself.
+	result = len(r)
+}
+
+func BenchmarkQuery2_2(b *testing.B) {
+	var r []DocID
+	format := "general.tuning.%s.metric-1"
+	q := fmt.Sprintf(format, "*")
+
+	for n := 0; n < b.N; n++ {
+		ts := extractTrigrams(q)
+		r = idx2.QueryTrigrams(ts)
+	}
+	// always store the result to a package level variable
+	// so the compiler cannot eliminate the Benchmark itself.
+	result = len(r)
+}
+
+func BenchmarkQuery2_3(b *testing.B) {
+	var r []DocID
+	format := "general.tuning.%s.metric-1*"
+	q := fmt.Sprintf(format, "*")
+
+	for n := 0; n < b.N; n++ {
+		ts := extractTrigrams(q)
+		r = idx2.QueryTrigrams(ts)
+	}
+	// always store the result to a package level variable
+	// so the compiler cannot eliminate the Benchmark itself.
+	result = len(r)
+}
+
+
+func getFileNames(pods int, perPodMetrics int) []string {
+	var fileNames []string
+	format := "general.tuning.%s.metric-%d"
+
+
+	for i := 0; i < pods; i++ {
+		podName := podNames[i]
+		for j := 0; j < perPodMetrics; j++{
+			x := fmt.Sprintf(format, podName, i)
+			fileNames = append(fileNames, x)
+		}
+
+	}
+	return fileNames
+}
+
+func getPodNames() [100]string {
+	var pNames [100]string
+	for i := 0; i < 100; i++ {
+		pNames[i] = RandStringRunes(8)
+	}
+	return pNames
+}
+
+var letterRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+func RandStringRunes(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
+func extractTrigrams(query string) []T {
+
+	if len(query) < 3 {
+		return nil
+	}
+
+	var start int
+	var i int
+
+	var trigrams []T
+
+	for i < len(query) {
+		if query[i] == '[' || query[i] == '*' || query[i] == '?' {
+			trigrams = Extract(query[start:i], trigrams)
+
+			if query[i] == '[' {
+				for i < len(query) && query[i] != ']' {
+					i++
+				}
+			}
+
+			start = i + 1
+		}
+		i++
+	}
+
+	if start < i {
+		trigrams = Extract(query[start:i], trigrams)
+	}
+
+	return trigrams
 }
