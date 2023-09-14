@@ -22,7 +22,7 @@ type Index map[T][]DocID
 // a special (and invalid) trigram that holds all the document IDs
 const TAllDocIDs T = 0xFFFFFFFF
 
-// Extract returns a list of all the unique trigrams in s
+// Extract returns a list of all the unique trigrams in s appended to trigrams
 func Extract(s string, trigrams []T) []T {
 
 	for i := 0; i <= len(s)-3; i++ {
